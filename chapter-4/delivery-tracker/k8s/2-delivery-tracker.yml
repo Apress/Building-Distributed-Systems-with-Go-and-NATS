@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: delivery-tracker
+    name: delivery-tracker
+  name: delivery-tracker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 4
+  selector:
+    matchLabels:
+      name: delivery-tracker
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: delivery-tracker
+    spec:
+      containers:
+        - env:
+            - name: NATS_URL
+              value: "nats://nats:4222"
+          image:  ghcr.io/delioda79/distributed-go/chapter-4/delivery-tracker:main
+          imagePullPolicy: Always
+          name: delivery-tracker
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "100M"
+            requests:
+              cpu: "0.2"
+              memory: "50M"
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always

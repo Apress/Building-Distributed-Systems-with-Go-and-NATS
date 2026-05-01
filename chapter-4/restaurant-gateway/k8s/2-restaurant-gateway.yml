@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: restaurant-gateway
+    name: restaurant-gateway
+  name: restaurant-gateway
+spec:
+  replicas: 1
+  revisionHistoryLimit: 4
+  selector:
+    matchLabels:
+      name: restaurant-gateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: restaurant-gateway
+    spec:
+      containers:
+        - env:
+            - name: NATS_URL
+              value: "nats://nats:4222"
+          image: ghcr.io/delioda79/distributed-go/chapter-4/restaurant-gateway:main
+          imagePullPolicy: Always
+          name: restaurant-gateway
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "100M"
+            requests:
+              cpu: "0.2"
+              memory: "50M"
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always

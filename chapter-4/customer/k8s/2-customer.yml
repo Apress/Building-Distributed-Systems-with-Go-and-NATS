@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: customer
+    name: customer
+  name: customer
+spec:
+  replicas: 1
+  revisionHistoryLimit: 4
+  selector:
+    matchLabels:
+      name: customer
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: customer
+    spec:
+      containers:
+        - env:
+            - name: NATS_URL
+              value: "nats://nats:4222"
+          image:  ghcr.io/delioda79/distributed-go/chapter-4/customer:main
+          imagePullPolicy: Always
+          name: customer
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "100M"
+            requests:
+              cpu: "0.2"
+              memory: "50M"
+          stdin: true   # Allow interactive input (like "docker run -it")
+          tty: true     # Allocate a TTY for the container (like using -t in Docker)
+
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: regcred
+      restartPolicy: Always

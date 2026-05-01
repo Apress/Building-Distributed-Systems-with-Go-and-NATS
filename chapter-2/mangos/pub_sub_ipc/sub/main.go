@@ -1,0 +1,41 @@
+package main
+
+import (
+	"fmt"
+	"go.nanomsg.org/mangos/v3"
+	"go.nanomsg.org/mangos/v3/protocol/sub"
+	_ "go.nanomsg.org/mangos/v3/transport/ipc"
+	"log"
+	"os"
+)
+
+func main() {
+	//TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
+	// to see how GoLand suggests fixing it.
+	port := os.Getenv("PORT")
+	url := fmt.Sprintf("ipc://%s", port)
+	sock, err := sub.NewSocket()
+	if err != nil {
+		log.Fatal("can't get new rep socket: %s", err.Error())
+	}
+	if err = sock.Listen(url); err != nil {
+		log.Fatal("can't listen on pull socket: %s", err.Error())
+	}
+	log.Println("Listening to ", url)
+	log.Printf("%+v", sock)
+	err = sock.SetOption(mangos.OptionSubscribe, []byte(""))
+	if err != nil {
+		log.Fatal("cannot subscribe: %s", err.Error())
+	}
+	for {
+		log.Println("Waiting")
+		msg, err := sock.Recv()
+		if err != nil {
+			log.Fatal("cannot receive on pull socket: %s", err.Error())
+		}
+		log.Println(string(msg))
+	}
+}
+
+//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
+// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.

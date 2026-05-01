@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nats
+    name: nats
+  name: nats
+spec:
+  replicas: 1
+  revisionHistoryLimit: 4
+  selector:
+    matchLabels:
+      name: nats
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: nats
+    spec:
+      containers:
+        - name: nats
+          image: nats:2.8.4-alpine
+          ports:
+            - containerPort: 4222
+              name: client
+              hostPort: 4222
+            - containerPort: 7422
+              name: leafnodes
+              hostPort: 7422
+            - containerPort: 6222
+              name: cluster
+            - containerPort: 8222
+              name: monitor
+            - containerPort: 7777
+              name: metrics
+          command:
+            - "nats-server"
+          env:
+            - name: CLUSTER_ADVERTISE
+              value: nats.default.svc.cluster.local
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "200M"
+            requests:
+              cpu: "0.2"
+              memory: "100M"
+
+      dnsPolicy: ClusterFirst
+
+      restartPolicy: Always
